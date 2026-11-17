@@ -1,0 +1,11 @@
+Front 303 para Windows (64 bits)
+
+Instalación:
+  - VST3: copia la carpeta Front303.vst3 en
+        C:\Program Files\Common Files\VST3\
+  - CLAP (opcional): copia Front303.clap en
+        C:\Program Files\Common Files\CLAP\
+  En REAPER: Options > Preferences > Plug-ins > VST > Re-scan.
+
+Si Windows SmartScreen o el antivirus avisa: el plugin no está firmado (es un proyecto
+personal). El manual completo está en MANUAL.es.md.

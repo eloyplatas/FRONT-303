@@ -1,0 +1,15 @@
+Front 303 para macOS (universal: Apple Silicon e Intel, macOS 10.15 o posterior)
+
+Instalación rápida: doble clic en install.command (si macOS no deja abrirlo, clic derecho >
+Abrir). Copia los plugins a tu carpeta de usuario y les quita la marca de cuarentena.
+
+A mano:
+  - VST3: copia Front303.vst3 en ~/Library/Audio/Plug-Ins/VST3/
+  - CLAP: copia Front303.clap en ~/Library/Audio/Plug-Ins/CLAP/
+  - Luego, en Terminal:
+        xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Front303.vst3
+        xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/CLAP/Front303.clap
+
+El plugin solo lleva una firma ad hoc (no está notarizado por Apple): sin quitar la
+cuarentena, macOS diría que está dañado o que no se puede verificar. En REAPER:
+Preferences > Plug-ins > VST > Re-scan. El manual completo está en MANUAL.es.md.

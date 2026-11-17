@@ -2,7 +2,7 @@
 
 ![Front 303 panel](docs/front303_panel_0.4.png)
 
-Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Linux build (VST3 + CLAP): [releases/Front303-0.4.0-linux-x86_64.tar.gz](releases/Front303-0.4.0-linux-x86_64.tar.gz).
+Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Builds (VST3 + CLAP) in [releases/](releases/): Linux x86_64, Windows x86_64, macOS universal (Apple silicon and Intel).
 
 Four TB-303 bass lines in one instrument. Each voice runs one of four models, chosen per voice:
 
@@ -81,6 +81,9 @@ cargo build --release -p front303-plugin --lib
 # or for glibc 2.31 and later, as released (needs zig and cargo-zigbuild):
 cargo zigbuild --release -p front303-plugin --lib --target x86_64-unknown-linux-gnu.2.31
 ```
+
+Windows and macOS are built by GitHub Actions (`.github/workflows/build.yml`): Windows
+cross-compiled with MinGW-w64, macOS as a universal binary, both committed to `releases/`.
 
 Then bundle `libfront303.so` as `Front303.vst3/Contents/x86_64-linux/Front303.so` (and copy it
 as `Front303.clap`); `packaging/install.sh` installs a bundle for the current user.

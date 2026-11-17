@@ -27,7 +27,9 @@ fn main() {
             .flag_if_supported("-Wno-reorder")
             .flag_if_supported("-Wno-class-memaccess")
             .flag_if_supported("-Wno-ignored-qualifiers")
-            .warnings(false);
+            .warnings(false)
+            // M_PI and friends on Windows
+            .define("_USE_MATH_DEFINES", None);
         b
     };
 
