@@ -2,7 +2,7 @@
 
 ![Front 303 panel](docs/front303_panel_0.4.png)
 
-Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Builds (VST3 + CLAP) in [releases/](releases/): Linux x86_64, Windows x86_64, macOS universal (Apple silicon and Intel).
+Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Builds (VST3 + CLAP) in [releases/](releases/): Linux x86_64, Windows x86_64, macOS universal (Apple silicon and Intel). Manual (PDF): [English](releases/Front303-0.4.0-Manual-EN.pdf) · [Español](releases/Front303-0.4.0-Manual-ES.pdf).
 
 Four TB-303 bass lines in one instrument. Each voice runs one of four models, chosen per voice:
 

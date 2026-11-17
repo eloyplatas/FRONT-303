@@ -1,3 +1,6 @@
 /target
 /dist
 /out
+/docs/manual/*.html
+/docs/manual/*.pdf
+/docs/manual/__pycache__

@@ -1,0 +1,142 @@
+v1_model	303-1 Model	303-1	REBIRTH / VINTAGE / DW-303 / OPEN303	REBIRTH
+v1_wave	303-1 Waveform	303-1	SAW / SQUARE	SAW
+v1_tune	303-1 Tune	303-1	-24..24	+0
+v1_fine	303-1 Fine	303-1	-100..100 ct	+0 ct
+v1_cutoff	303-1 Cutoff	303-1	0-127	20
+v1_reso	303-1 Resonance	303-1	0-127	90
+v1_envmod	303-1 Env Mod	303-1	0-127	20
+v1_decay	303-1 Decay	303-1	0-127	100
+v1_accent	303-1 Accent	303-1	0-127	64
+v1_pattern	303-1 Pattern	303-1	1..8	1
+v1_on	303-1 On	303-1	OFF / ON	ON
+v1_level	303-1 Level	303-1	0..127	100
+v1_pan	303-1 Pan	303-1	0..127	64
+v1_send	303-1 Delay Send	303-1	0..127	0
+v1_dist	303-1 Distortion	303-1	OFF / ON	OFF
+v1_density	303-1 Gen Density	303-1	0-127	95
+v1_accents	303-1 Gen Accents	303-1	0-127	38
+v1_slides	303-1 Gen Slides	303-1	0-127	32
+v1_octaves	303-1 Gen Octaves	303-1	0-127	44
+v1_evolve	303-1 Gen Evolve	303-1	0-127	0
+v1_rate	303-1 Step Rate	303-1	1/32 / 1/16T / 1/16 / 1/8T / 1/16. / 1/8 / 1/4T / 1/8. / 1/4	1/16
+v1_miditr	303-1 MIDI Transpose	303-1	OFF / ON	ON
+v1_reverb	303-1 Reverb Send	303-1	0-127	0
+v2_model	303-2 Model	303-2	REBIRTH / VINTAGE / DW-303 / OPEN303	REBIRTH
+v2_wave	303-2 Waveform	303-2	SAW / SQUARE	SAW
+v2_tune	303-2 Tune	303-2	-24..24	+0
+v2_fine	303-2 Fine	303-2	-100..100 ct	+0 ct
+v2_cutoff	303-2 Cutoff	303-2	0-127	20
+v2_reso	303-2 Resonance	303-2	0-127	90
+v2_envmod	303-2 Env Mod	303-2	0-127	20
+v2_decay	303-2 Decay	303-2	0-127	100
+v2_accent	303-2 Accent	303-2	0-127	64
+v2_pattern	303-2 Pattern	303-2	1..8	1
+v2_on	303-2 On	303-2	OFF / ON	OFF
+v2_level	303-2 Level	303-2	0..127	100
+v2_pan	303-2 Pan	303-2	0..127	64
+v2_send	303-2 Delay Send	303-2	0..127	0
+v2_dist	303-2 Distortion	303-2	OFF / ON	OFF
+v2_density	303-2 Gen Density	303-2	0-127	95
+v2_accents	303-2 Gen Accents	303-2	0-127	38
+v2_slides	303-2 Gen Slides	303-2	0-127	32
+v2_octaves	303-2 Gen Octaves	303-2	0-127	44
+v2_evolve	303-2 Gen Evolve	303-2	0-127	0
+v2_rate	303-2 Step Rate	303-2	1/32 / 1/16T / 1/16 / 1/8T / 1/16. / 1/8 / 1/4T / 1/8. / 1/4	1/16
+v2_miditr	303-2 MIDI Transpose	303-2	OFF / ON	ON
+v2_reverb	303-2 Reverb Send	303-2	0-127	0
+v3_model	303-3 Model	303-3	REBIRTH / VINTAGE / DW-303 / OPEN303	REBIRTH
+v3_wave	303-3 Waveform	303-3	SAW / SQUARE	SAW
+v3_tune	303-3 Tune	303-3	-24..24	+0
+v3_fine	303-3 Fine	303-3	-100..100 ct	+0 ct
+v3_cutoff	303-3 Cutoff	303-3	0-127	20
+v3_reso	303-3 Resonance	303-3	0-127	90
+v3_envmod	303-3 Env Mod	303-3	0-127	20
+v3_decay	303-3 Decay	303-3	0-127	100
+v3_accent	303-3 Accent	303-3	0-127	64
+v3_pattern	303-3 Pattern	303-3	1..8	1
+v3_on	303-3 On	303-3	OFF / ON	OFF
+v3_level	303-3 Level	303-3	0..127	100
+v3_pan	303-3 Pan	303-3	0..127	64
+v3_send	303-3 Delay Send	303-3	0..127	0
+v3_dist	303-3 Distortion	303-3	OFF / ON	OFF
+v3_density	303-3 Gen Density	303-3	0-127	95
+v3_accents	303-3 Gen Accents	303-3	0-127	38
+v3_slides	303-3 Gen Slides	303-3	0-127	32
+v3_octaves	303-3 Gen Octaves	303-3	0-127	44
+v3_evolve	303-3 Gen Evolve	303-3	0-127	0
+v3_rate	303-3 Step Rate	303-3	1/32 / 1/16T / 1/16 / 1/8T / 1/16. / 1/8 / 1/4T / 1/8. / 1/4	1/16
+v3_miditr	303-3 MIDI Transpose	303-3	OFF / ON	ON
+v3_reverb	303-3 Reverb Send	303-3	0-127	0
+v4_model	303-4 Model	303-4	REBIRTH / VINTAGE / DW-303 / OPEN303	REBIRTH
+v4_wave	303-4 Waveform	303-4	SAW / SQUARE	SAW
+v4_tune	303-4 Tune	303-4	-24..24	+0
+v4_fine	303-4 Fine	303-4	-100..100 ct	+0 ct
+v4_cutoff	303-4 Cutoff	303-4	0-127	20
+v4_reso	303-4 Resonance	303-4	0-127	90
+v4_envmod	303-4 Env Mod	303-4	0-127	20
+v4_decay	303-4 Decay	303-4	0-127	100
+v4_accent	303-4 Accent	303-4	0-127	64
+v4_pattern	303-4 Pattern	303-4	1..8	1
+v4_on	303-4 On	303-4	OFF / ON	OFF
+v4_level	303-4 Level	303-4	0..127	100
+v4_pan	303-4 Pan	303-4	0..127	64
+v4_send	303-4 Delay Send	303-4	0..127	0
+v4_dist	303-4 Distortion	303-4	OFF / ON	OFF
+v4_density	303-4 Gen Density	303-4	0-127	95
+v4_accents	303-4 Gen Accents	303-4	0-127	38
+v4_slides	303-4 Gen Slides	303-4	0-127	32
+v4_octaves	303-4 Gen Octaves	303-4	0-127	44
+v4_evolve	303-4 Gen Evolve	303-4	0-127	0
+v4_rate	303-4 Step Rate	303-4	1/32 / 1/16T / 1/16 / 1/8T / 1/16. / 1/8 / 1/4T / 1/8. / 1/4	1/16
+v4_miditr	303-4 MIDI Transpose	303-4	OFF / ON	ON
+v4_reverb	303-4 Reverb Send	303-4	0-127	0
+run	Run	Transport	OFF / ON	OFF
+tempo	Tempo	Transport	20..300 BPM	+125 BPM
+shuffle	Shuffle	Transport	0-127	0
+root	Root	Scale	C / C# / D / D# / E / F / F# / G / G# / A / A# / B	C
+scale	Scale	Scale	CHROMATIC / MAJOR / MINOR / DORIAN / PHRYGIAN / LYDIAN / MIXOLYDIAN / LOCRIAN / HARM MINOR / PHRYG DOM / MINOR PENTA / MAJOR PENTA / BLUES / WHOLE TONE	MINOR
+master	Master	Mixer	0..127	100
+quality	DW-303 Quality	Mixer	ECONOMY / FULL	FULL
+dist_amount	Dist Amount	Distortion	0..127	70
+dist_shape	Dist Shape	Distortion	0..127	0
+pcf_channel	PCF Channel	PCF	OFF / 303-1 / 303-2 / 303-3 / 303-4	OFF
+pcf_freq	PCF Frequency	PCF	0..127	70
+pcf_reso	PCF Resonance	PCF	0..127	64
+pcf_amount	PCF Amount	PCF	0..127	40
+pcf_pattern	PCF Pattern	PCF	1..55	25
+pcf_decay	PCF Decay	PCF	0..127	90
+pcf_mode	PCF Mode	PCF	BANDPASS / LOWPASS	LOWPASS
+comp_route	Comp Route	Compressor	OFF / MASTER / 303-1 / 303-2 / 303-3 / 303-4	OFF
+comp_amount	Comp Amount	Compressor	0..127	70
+comp_threshold	Comp Threshold	Compressor	0..127	64
+delay_on	Delay On	Delay	OFF / ON	ON
+delay_steps	Delay Steps	Delay	1..32	3
+delay_triplet	Delay Triplet	Delay	OFF / ON	OFF
+delay_feedback	Delay Feedback	Delay	0..127	80
+delay_pan	Delay Pan	Delay	0..127	64
+dist_mode	Dist Mode	Distortion	REBIRTH / SETEKH	REBIRTH
+dist_level	Dist Level	Distortion	0..127	64
+comp_mode	Comp Mode	Compressor	REBIRTH / VALENTINE	REBIRTH
+comp_ratio	Comp Ratio	Compressor	1..21	4
+comp_attack	Comp Attack	Compressor	0..127	67
+comp_release	Comp Release	Compressor	0..127	104
+comp_saturate	Comp Saturate	Compressor	0..10	1
+comp_crush	Comp Crush	Compressor	0..10	0
+comp_mix	Comp Mix	Compressor	0..100	100
+delay_mode	Delay Mode	Delay	REBIRTH / TAPE / INTERVALS	REBIRTH
+delay_a	Delay Wow / Falloff	Delay	0..127	30
+delay_b	Delay Flutter / Tone	Delay	0..127	30
+delay_c	Delay Noise / Spread	Delay	0..127	40
+delay_kind	Delay Tape / Pattern	Delay	1..12	6
+rev_on	Reverb On	Reverb	OFF / ON	ON
+rev_mode	Reverb Mode	Reverb	HALL / EARLY / AETHER / CLOUD	HALL
+rev_program	Reverb Program	Reverb	1..8	4
+rev_predelay	Reverb Predelay	Reverb	0-127	10
+rev_size	Reverb Size	Reverb	0-127	64
+rev_decay	Reverb Decay	Reverb	0-127	64
+rev_damping	Reverb Damping	Reverb	0-127	64
+rev_mod	Reverb Modulation	Reverb	0-127	64
+rev_width	Reverb Width	Reverb	0-127	85
+rev_delay	Reverb Delay Send	Reverb	0-127	0
+rev_level	Reverb Level	Reverb	0-127	89
+output	Output	Mixer	STEREO / MULTI-OUT	STEREO

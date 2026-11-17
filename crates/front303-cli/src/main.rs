@@ -472,8 +472,24 @@ fn main() -> io::Result<()> {
             generative(dir)?;
             effects(dir)
         }
+        Some("controls") => {
+            // every automatable parameter: id, name, group, range, default
+            for c in front303_core::controls::controls() {
+                let range = match c.kind {
+                    front303_core::controls::Kind::Knob => "0-127".to_string(),
+                    front303_core::controls::Kind::Range { min, max, unit } => {
+                        format!("{min}..{max} {unit}")
+                    }
+                    front303_core::controls::Kind::Int { min, max } => format!("{min}..{max}"),
+                    front303_core::controls::Kind::Choice(names) => names.join(" / "),
+                    front303_core::controls::Kind::Switch => "OFF / ON".to_string(),
+                };
+                println!("{}\t{}\t{}\t{}\t{}", c.id, c.name, c.group, range, c.text(c.default));
+            }
+            Ok(())
+        }
         _ => {
-            eprintln!("usage: front303 demo [DIR]");
+            eprintln!("usage: front303 demo [DIR] | front303 controls");
             std::process::exit(2);
         }
     }
