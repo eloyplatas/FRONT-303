@@ -112,6 +112,16 @@ fn main() {
         .compile("f303_cloud");
 
     if static_cxx {
+        // where the compiler keeps its libstdc++.a
+        let compiler = cc::Build::new().cpp(true).get_compiler();
+        let out = std::process::Command::new(compiler.path())
+            .arg("-print-file-name=libstdc++.a")
+            .output()
+            .expect("the C++ compiler runs");
+        let file = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim());
+        if let Some(dir) = file.parent().filter(|d| d.is_absolute()) {
+            println!("cargo:rustc-link-search=native={}", dir.display());
+        }
         println!("cargo:rustc-link-lib=static=stdc++");
     }
 }
