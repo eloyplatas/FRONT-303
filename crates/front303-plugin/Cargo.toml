@@ -1,0 +1,26 @@
+[package]
+name = "front303-plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Front 303 as a VST3 and CLAP instrument"
+
+[lib]
+name = "front303"
+crate-type = ["cdylib", "lib"]
+
+[features]
+# A standalone application with the same panel, for checking the panel without a host.
+standalone = ["nice-plug/standalone"]
+
+[[bin]]
+name = "front303-standalone"
+path = "src/main.rs"
+required-features = ["standalone"]
+
+[dependencies]
+front303-core = { path = "../front303-core" }
+nice-plug = "=0.4.2"
+nice-plug-egui = "=0.6.0"
+egui = "=0.37.0"

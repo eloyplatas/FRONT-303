@@ -1,0 +1,26 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/front303-cxx","crates/front303-core", "crates/front303-cli", "crates/front303-plugin"]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2024"
+license = "GPL-3.0-only"
+publish = false
+
+[workspace.dependencies]
+# The ReBirth RB-338 engine reimplementation (GPL-3.0-only), pinned.
+orb-engine = { git = "https://github.com/pingw33n/OpenRB-338", rev = "dc0f0af85e28535b99ff1ea317ababb18b5c2bff" }
+# The DW-303 circuit model (GPL-3.0-or-later), pinned at 0.1.1.
+dw303-voice = { git = "https://github.com/mo0kid/DW-303", rev = "55eff2a63813f1a7c47102dd6adea34bb6b1af5a" }
+dw303-osc = { git = "https://github.com/mo0kid/DW-303", rev = "55eff2a63813f1a7c47102dd6adea34bb6b1af5a" }
+dw303-vcf = { git = "https://github.com/mo0kid/DW-303", rev = "55eff2a63813f1a7c47102dd6adea34bb6b1af5a" }
+dw303-env = { git = "https://github.com/mo0kid/DW-303", rev = "55eff2a63813f1a7c47102dd6adea34bb6b1af5a" }
+ravet-signal = { git = "https://github.com/mo0kid/ravet", tag = "v0.1.1" }
+
+[profile.release]
+opt-level = 3
+
+[profile.test]
+opt-level = 2

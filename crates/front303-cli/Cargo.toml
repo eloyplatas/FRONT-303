@@ -1,0 +1,13 @@
+[package]
+name = "front303-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "front303"
+path = "src/main.rs"
+
+[dependencies]
+front303-core = { path = "../front303-core" }

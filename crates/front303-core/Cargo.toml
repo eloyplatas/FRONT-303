@@ -1,0 +1,16 @@
+[package]
+name = "front303-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Front 303: four TB-303 voices (ReBirth or DW-303 model per voice) with the ReBirth mixer and effects"
+
+[dependencies]
+orb-engine.workspace = true
+dw303-voice.workspace = true
+dw303-osc.workspace = true
+dw303-vcf.workspace = true
+dw303-env.workspace = true
+ravet-signal.workspace = true
+front303-cxx = { path = "../front303-cxx" }

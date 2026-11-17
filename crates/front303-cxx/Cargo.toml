@@ -1,0 +1,12 @@
+[package]
+name = "front303-cxx"
+description = "Front 303's C++ engines: Open303 and the Dragonfly, Aether and CloudSeed reverbs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+links = "front303cxx"
+
+[dependencies]
+
+[build-dependencies]
+cc = "1.2"
