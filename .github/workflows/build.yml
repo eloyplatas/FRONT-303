@@ -38,7 +38,6 @@ jobs:
           # linked by g++, with the C++ and MinGW runtimes inside the DLL: nothing to install
           # beside the plugin
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-g++-posix
-          CXXSTDLIB_x86_64_pc_windows_gnu: ""
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS: -C link-arg=-static -C link-arg=-static-libgcc -C link-arg=-static-libstdc++
         run: cargo build --release -p front303-plugin --lib --target x86_64-pc-windows-gnu
       - name: Check the DLL's imports
