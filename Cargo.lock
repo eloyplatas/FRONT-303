@@ -979,14 +979,14 @@ checksum = "8878864ba14bb86e818a412bfd6f18f9eabd4ec0f008a28e8f7eb61db532fcf9"
 
 [[package]]
 name = "front303-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "front303-core",
 ]
 
 [[package]]
 name = "front303-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "dw303-env",
  "dw303-osc",
@@ -999,14 +999,14 @@ dependencies = [
 
 [[package]]
 name = "front303-cxx"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cc",
 ]
 
 [[package]]
 name = "front303-plugin"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "egui",
  "front303-core",

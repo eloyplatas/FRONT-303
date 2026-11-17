@@ -1,8 +1,8 @@
 # Front 303
 
-![Front 303 panel](docs/front303_panel_0.3.png)
+![Front 303 panel](docs/front303_panel_0.4.png)
 
-Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Linux build (VST3 + CLAP): [releases/Front303-0.3.0-linux-x86_64.tar.gz](releases/Front303-0.3.0-linux-x86_64.tar.gz).
+Demos: [effects and step rates](docs/demos/demo_effects.mp3) · [Open303 voice](docs/demos/compare_open303.mp3). Linux build (VST3 + CLAP): [releases/Front303-0.4.0-linux-x86_64.tar.gz](releases/Front303-0.4.0-linux-x86_64.tar.gz).
 
 Four TB-303 bass lines in one instrument. Each voice runs one of four models, chosen per voice:
 
@@ -40,6 +40,7 @@ returns, used in the MULTI-OUT mode.
 | 3 | VST3 and CLAP plugin (nice-plug): host sync, 104 automatable parameters, patterns saved with the project, resampling to the host's rate | done |
 | 4 | The panel: a rack in the manner of ReBirth 2.0, vector-drawn and resizable | done |
 | 5 | 0.3.0: Open303, step rates per voice, MIDI transposition, separate outputs, Setekh, Valentine, tape and interval delays, reverb with four engines; 142 parameters | done |
+| 6 | 0.4.0: ten memories (click or key 1–0 to recall, hold to save, saved with the project), undo/redo of everything done on the panel, copy and paste of patterns between voices and slots | done |
 
 The user guide, in Spanish, is [MANUAL.es.md](MANUAL.es.md).
 
@@ -57,6 +58,7 @@ The user guide, in Spanish, is [MANUAL.es.md](MANUAL.es.md).
   - `engine.rs`: the transport (with a step rate per voice), host sync, MIDI transposition,
     the mixer block, the effects' routing and the outputs.
   - `shared.rs`: what the audio thread and the panel share without locks.
+  - `snapshot.rs`: snapshots of the whole instrument, the ten memories and the undo history.
 - `crates/front303-cxx`: the C++ engines (Open303, freeverb3 with Dragonfly's Hall and Early
   Reflections, Aether, CloudSeed) built with the `cc` crate from `third_party/`, behind a small
   C interface (`shim/`).
@@ -87,8 +89,8 @@ builds the standalone program.
 
 ## Checks
 
-- `cargo test --release`: 47 tests of the engine, sequencer, step rates, MIDI transposition,
-  outputs, every effect mode and reverb program, controls and resampler, including that
+- `cargo test --release`: 51 tests of the engine, sequencer, step rates, MIDI transposition,
+  outputs, every effect mode and reverb program, controls, memories, undo history and resampler, including that
   rendering never allocates — counted at `malloc`, so the C++ engines are covered too, through
   changes of mode, program and size.
 - Steinberg's VST3 validator: 47 of 47 tests pass, also with nice-plug's
@@ -116,7 +118,9 @@ builds the standalone program.
 - **The reverb engines** are all built when the plugin is, and only the chosen one runs.
   freeverb3 resizes its delay lines on size and program changes; Front 303 serves those from a
   pool filled once at start-up, so they do not allocate on the audio thread.
-- **Not implemented:** copying patterns between voices, undo.
+- **Memories and undo** live in the panel: a memory holds every control (but RUN, OUTPUT and
+  the DW-303 solver) and all 32 patterns; the undo history (100 steps) covers what is done on
+  the panel, not host automation, and is not saved.
 
 ## License
 

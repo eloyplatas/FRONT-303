@@ -9,8 +9,8 @@ teclado MIDI, y cada 303 y los efectos pueden salir por salidas separadas.
 ## Instalación (Linux)
 
 ```sh
-tar xzf Front303-0.3.0-linux-x86_64.tar.gz
-cd Front303-0.3.0-linux-x86_64
+tar xzf Front303-0.4.0-linux-x86_64.tar.gz
+cd Front303-0.4.0-linux-x86_64
 ./install.sh
 ```
 
@@ -50,6 +50,11 @@ recientes), X11 o XWayland y OpenGL para el panel.
   distintas (polimetría).
 - **← →** desplazan el patrón un paso; **CLR** lo borra; **−1 / +1** transponen un semitono;
   **OCT** sube una octava (las notas que se salen del rango se pliegan).
+- **COPY / PASTE**: COPY copia el patrón que se ve en esa 303 (su número de PATTERN) y PASTE
+  lo pega sobre el patrón que se ve en la 303 donde lo pulses. Sirve para copiar entre voces y
+  también entre patrones de la misma voz (copia, cambia de PATTERN y pega). El COPY de origen
+  queda iluminado y la barra inferior dice qué hay copiado. Se copia la secuencia (notas,
+  acentos, slides, silencios y longitud), no el sonido.
 - **PATTERN 1–8**: ocho patrones por voz. Con el transporte en marcha, el cambio espera al
   siguiente compás; el punto rojo marca el patrón que suena.
 - **Métrica** (el display bajo LENGTH): cuánto dura cada paso de esa 303 — 1/32, 1/16T,
@@ -93,6 +98,32 @@ generador. Hay 14 escalas: cromática (sin cuantizar), mayor, menor, los modos, 
 frigia dominante, pentatónicas, blues y tonos enteros. Al cuantizar, una nota fuera de la escala
 suena como la más cercana de la escala (hacia abajo en caso de empate); el patrón guardado no
 cambia.
+
+## Memorias, deshacer y rehacer
+
+En la barra inferior hay **10 memorias**, como en GenderBender P23:
+
+- **Clic corto** en una memoria, o **tecla 1–9 / 0**: la recupera.
+- **Mantener 0,6 s** (ratón o tecla): guarda ahí el estado actual. Una barrita muestra el
+  progreso y la memoria parpadea con **SAVED**.
+- Vacías se ven grises (*empty*), usadas en marrón (*recall*) y la última guardada o
+  recuperada en naranja.
+
+Cada memoria guarda **todo**: todos los controles (sonido de las 303, métricas, MIDI,
+mezclador, efectos, reverb, escala, tempo del knob…) y **los 32 patrones** (8 por voz). Solo
+quedan fuera RUN, OUTPUT y el DW-303 SOLVER, que son de la sesión y no de la música. Las
+memorias se guardan con el proyecto. Al recuperar, los cambios de patrón siguen esperando al
+compás como siempre.
+
+**UNDO / REDO** (o **Ctrl+Z** y **Ctrl+Mayús+Z / Ctrl+Y**) deshacen y rehacen lo que se hace
+en el panel: knobs y selectores, ediciones de pasos, GENERATE, MUTATE, las herramientas de
+patrón, PASTE y la recuperación de memorias. Un arrastre de knob o de nota cuenta como un solo
+paso. Guarda los últimos 100 pasos. Lo que cambia el host por automatización o EVOLVE por su
+cuenta no entra en el historial, y el historial se pierde al cerrar el proyecto.
+
+En REAPER, para que las teclas lleguen al plugin hay que tener activada la opción *Send all
+keyboard input to plug-in* del menú del botón **+** de la ventana del FX; si no, REAPER usa
+los números y Ctrl+Z para lo suyo. Con el ratón funciona siempre.
 
 ## Mezclador y efectos
 

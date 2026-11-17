@@ -3,13 +3,17 @@
 //! and the four 303s below, each with its knobs, its generator, its eight patterns, its step
 //! rate and a sixteen-step editor.
 //!
-//! Everything is painted in design coordinates (1280 × 1010) and scaled to the window.
+//! A bar at the bottom holds the ten memories (as in GenderBender P23: a click or a key 1–0
+//! recalls, holding for 0.6 s saves) and UNDO / REDO for everything done on the panel.
+//!
+//! Everything is painted in design coordinates (1280 × 1058) and scaled to the window.
 
 mod art;
 
+use std::cell::{Cell, RefCell};
 use std::sync::Arc;
 use std::sync::atomic::Ordering::Relaxed;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use egui::{
     Align2, Color32, Context, FontData, FontDefinitions, FontFamily, Id, Pos2, Rect, Sense, Ui,
@@ -17,6 +21,7 @@ use egui::{
 };
 use front303_core::controls::{self, G, Kind, V, global, voice};
 use front303_core::generator::{self, quantize};
+use front303_core::snapshot::{History, MEMORIES, Snapshot, restores};
 use front303_core::{
     Feedback, GenParams, MAX_STEPS, NOTE_MAX, NOTE_MIN, Pattern, ReverbMode, Rng, SLOTS, Scale,
     VOICES, interval_pattern_name, reverb_program_name,
@@ -90,7 +95,45 @@ pub struct Panel {
     meters: [f32; VOICES + 3],
     /// A value shown beside the control under the pointer, drawn last.
     bubble: Option<(Pos2, String)>,
+    history: RefCell<History>,
+    /// A snapshot is being applied: its changes take no checkpoints.
+    restoring: Cell<bool>,
+    /// The copied pattern, and the voice and slot it came from.
+    clipboard: Option<(Pattern, usize, usize)>,
+    /// The memory last saved or recalled.
+    current_memory: Option<usize>,
+    /// When each memory was last saved, for its flash.
+    saved_at: [Option<Instant>; MEMORIES],
+    /// A memory button or key being held.
+    hold: Option<Hold>,
 }
+
+/// A press on a memory: released early it recalls, held it saves.
+struct Hold {
+    slot: usize,
+    since: Instant,
+    /// The digit key held, or `None` for the mouse.
+    key: Option<egui::Key>,
+    saved: bool,
+}
+
+/// How long a memory is held to save it, as in GenderBender P23.
+const HOLD_TO_SAVE: Duration = Duration::from_millis(600);
+const DIGITS: [egui::Key; MEMORIES] = [
+    egui::Key::Num1,
+    egui::Key::Num2,
+    egui::Key::Num3,
+    egui::Key::Num4,
+    egui::Key::Num5,
+    egui::Key::Num6,
+    egui::Key::Num7,
+    egui::Key::Num8,
+    egui::Key::Num9,
+    egui::Key::Num0,
+];
+/// Checkpoint tags: a control's, a pattern's, and one per discrete action.
+const TAG_CONTROL: u64 = 1 << 40;
+const TAG_PATTERN: u64 = 2 << 40;
 
 impl Panel {
     fn new(params: Arc<FrontParams>, feedback: Arc<Feedback>) -> Self {
@@ -107,7 +150,107 @@ impl Panel {
             rng: Rng::new(seed),
             meters: [0.0; VOICES + 3],
             bubble: None,
+            history: RefCell::new(History::default()),
+            restoring: Cell::new(false),
+            clipboard: None,
+            current_memory: None,
+            saved_at: [None; MEMORIES],
+            hold: None,
         }
+    }
+
+    /// Every control's value and every pattern, as they are now.
+    fn capture(&self) -> Snapshot {
+        Snapshot {
+            values: (0..self.params.controls.len())
+                .map(|i| self.value(i))
+                .collect(),
+            patterns: self.params.patterns.all(),
+        }
+    }
+
+    /// Sets the panel to a snapshot: the controls it restores that differ, and the patterns.
+    fn apply(&self, s: &Snapshot) {
+        self.restoring.set(true);
+        for (i, &v) in s.values.iter().enumerate() {
+            if restores(i) && (self.value(i) - v).abs() > 1e-6 {
+                self.set(i, v);
+            }
+        }
+        let bank = &self.params.patterns;
+        for v in 0..VOICES {
+            for slot in 0..SLOTS {
+                let p = s.pattern(v, slot);
+                if bank.get(v, slot) != *p {
+                    bank.set(v, slot, p);
+                }
+            }
+        }
+        self.restoring.set(false);
+    }
+
+    /// Records the state before a change tagged `tag`.
+    fn checkpoint(&self, tag: u64) {
+        if self.restoring.get() {
+            return;
+        }
+        self.history
+            .borrow_mut()
+            .checkpoint(tag, Instant::now(), || self.capture());
+    }
+
+    /// Records the state before a change of its own, never merged with the one before.
+    fn checkpoint_action(&self) {
+        self.history.borrow_mut().seal();
+        self.checkpoint(u64::MAX);
+        self.history.borrow_mut().seal();
+    }
+
+    fn undo(&mut self) {
+        let present = self.capture();
+        let back = self.history.borrow_mut().undo(present);
+        if let Some(s) = back {
+            self.apply(&s);
+        }
+    }
+
+    fn redo(&mut self) {
+        let present = self.capture();
+        let forward = self.history.borrow_mut().redo(present);
+        if let Some(s) = forward {
+            self.apply(&s);
+        }
+    }
+
+    fn save_memory(&mut self, m: usize) {
+        let snapshot = self.capture();
+        if let Ok(mut memories) = self.params.memories.lock() {
+            memories.slots[m] = Some(snapshot);
+        }
+        self.current_memory = Some(m);
+        self.saved_at[m] = Some(Instant::now());
+    }
+
+    fn recall_memory(&mut self, m: usize) {
+        let snapshot = self
+            .params
+            .memories
+            .lock()
+            .ok()
+            .and_then(|memories| memories.slots[m].clone());
+        if let Some(s) = snapshot {
+            self.checkpoint_action();
+            self.apply(&s);
+            self.current_memory = Some(m);
+        }
+    }
+
+    fn memory_used(&self, m: usize) -> bool {
+        self.params
+            .memories
+            .lock()
+            .map(|memories| memories.slots[m].is_some())
+            .unwrap_or(false)
     }
 
     fn value(&self, i: usize) -> f32 {
@@ -119,6 +262,7 @@ impl Panel {
     }
 
     fn begin(&self, i: usize) {
+        self.checkpoint(TAG_CONTROL | i as u64);
         if let Some(gui) = &self.gui {
             unsafe { gui.raw_begin_set_parameter(self.params.params[i].ptr()) };
         }
@@ -1223,11 +1367,22 @@ impl Panel {
         n as i8
     }
 
+    /// A change to the pattern voice `v` edits. Changes in a row (a note dragged or turned)
+    /// share one undo step.
     fn edit(&self, v: usize, f: impl FnOnce(&mut Pattern)) {
         let slot = self.slot(v);
+        self.checkpoint(TAG_PATTERN | (v * SLOTS + slot) as u64);
         let mut p = self.params.patterns.get(v, slot);
         f(&mut p);
         self.params.patterns.set(v, slot, &p);
+    }
+
+    /// A change to the pattern voice `v` edits that is an undo step of its own.
+    fn edit_action(&self, v: usize, f: impl FnOnce(&mut Pattern)) {
+        self.checkpoint_action();
+        self.restoring.set(true);
+        self.edit(v, f);
+        self.restoring.set(false);
     }
 
     fn unit(&mut self, ui: &mut Ui, pen: &Pen, t: &Textures, v: usize) {
@@ -1404,13 +1559,13 @@ impl Panel {
         let g = self.gen_params(v);
         if generate {
             let mut rng = self.rng;
-            self.edit(v, |p| generator::generate(p, &g, root, scale, &mut rng));
+            self.edit_action(v, |p| generator::generate(p, &g, root, scale, &mut rng));
             self.rng.next_u64();
             self.rng = Rng::new(rng.next_u64());
         }
         if mutate {
             let mut rng = Rng::new(self.rng.next_u64());
-            self.edit(v, |p| generator::mutate(p, &g, 0.25, root, scale, &mut rng));
+            self.edit_action(v, |p| generator::mutate(p, &g, 0.25, root, scale, &mut rng));
         }
 
         // the patterns
@@ -1510,10 +1665,10 @@ impl Panel {
             p,
         );
         if less && len > 1 {
-            self.edit(v, |p| p.len -= 1);
+            self.edit_action(v, |p| p.len -= 1);
         }
         if more && len < MAX_STEPS {
-            self.edit(v, |p| p.len += 1);
+            self.edit_action(v, |p| p.len += 1);
         }
         let evolve = self.value(voice(v, V::Evolve));
         pen.text(
@@ -1563,9 +1718,11 @@ impl Panel {
                 quantize(step.note, root, scale)
             };
             if resp.clicked() {
-                self.edit(v, |p| p.steps[i].rest = !p.steps[i].rest);
+                self.edit_action(v, |p| p.steps[i].rest = !p.steps[i].rest);
             }
             if resp.drag_started() {
+                // a drag is one undo step, apart from what came before
+                self.history.borrow_mut().seal();
                 self.note_drag = Some(NoteDrag {
                     voice: v,
                     step: i,
@@ -1623,7 +1780,7 @@ impl Panel {
                 let br = pen.r(cx + 2.0 + k as f32 * 27.0, y + 127.0, 25.0, 15.0);
                 let (clicked, down) = self.click(ui, br, ("flag", v, i, k));
                 if clicked {
-                    self.edit(v, |p| {
+                    self.edit_action(v, |p| {
                         if k == 0 {
                             p.steps[i].accent = !p.steps[i].accent;
                         } else {
@@ -1638,26 +1795,44 @@ impl Panel {
             }
         }
 
-        // pattern tools
+        // pattern tools, and copying patterns between voices and slots
         let tools = [
             ("←", 0),
             ("→", 1),
             ("CLR", 2),
+            ("COPY", 6),
             ("−1", 3),
             ("+1", 4),
             ("OCT", 5),
+            ("PASTE", 7),
         ];
-        for (label, k) in tools {
+        for (n, (label, k)) in tools.into_iter().enumerate() {
             let br = pen.r(
-                x + 1080.0 + (k % 3) as f32 * 42.0,
-                y + 101.0 + (k / 3) as f32 * 24.0,
-                38.0,
+                x + 1081.0 + (n % 4) as f32 * 31.5,
+                y + 101.0 + (n / 4) as f32 * 24.0,
+                29.0,
                 19.0,
             );
             let (clicked, down) = self.click(ui, br, ("tool", v, k));
-            button(pen, br, label, 9.0, rgb(0x4a4c52), None, down);
-            if clicked {
-                self.edit(v, |p| match k {
+            let copied_here = matches!(self.clipboard, Some((_, cv, cs)) if cv == v && cs == slot);
+            let lit = match k {
+                6 if copied_here => Some(col),
+                7 if self.clipboard.is_some() => Some(rgb(0x6a6c72)),
+                _ => None,
+            };
+            let size = if label.len() > 3 { 6.5 } else { 8.5 };
+            button(pen, br, label, size, rgb(0x4a4c52), lit, down);
+            if !clicked {
+                continue;
+            }
+            match k {
+                6 => self.clipboard = Some((self.params.patterns.get(v, slot), v, slot)),
+                7 => {
+                    if let Some((copied, _, _)) = self.clipboard {
+                        self.edit_action(v, |p| *p = copied);
+                    }
+                }
+                _ => self.edit_action(v, |p| match k {
                     0 => generator::rotate(p, -1),
                     1 => generator::rotate(p, 1),
                     2 => {
@@ -1668,6 +1843,232 @@ impl Panel {
                     3 => generator::transpose(p, -1),
                     4 => generator::transpose(p, 1),
                     _ => generator::transpose(p, 12),
+                }),
+            }
+        }
+    }
+
+    /// The bottom bar: the ten memories, UNDO and REDO.
+    fn memory_bar(&mut self, ui: &mut Ui, pen: &Pen, t: &Textures) {
+        let y = 1012.0;
+        let r = pen.r(34.0, y, 1212.0, 40.0);
+        dark_plate(pen, t, r, rgb(0x2b2c30), rgb(0x18191b));
+        pen.text(
+            48.0,
+            y + 20.0,
+            Align2::LEFT_CENTER,
+            "MEMORY",
+            BOLD,
+            9.0,
+            rgb(0x8c8e93),
+        );
+        let now = Instant::now();
+        for m in 0..MEMORIES {
+            let br = pen.r(112.0 + m as f32 * 66.0, y + 6.0, 60.0, 28.0);
+            let resp = ui.interact(br, key(("memory", m)), Sense::click_and_drag());
+            // a click quicker than a frame is only seen as a click: a recall
+            let quick = resp.clicked() && self.hold.is_none();
+            if quick {
+                self.recall_memory(m);
+            }
+            if resp.is_pointer_button_down_on() && self.hold.is_none() && !quick {
+                self.hold = Some(Hold {
+                    slot: m,
+                    since: now,
+                    key: None,
+                    saved: false,
+                });
+            }
+            let used = self.memory_used(m);
+            let current = used && self.current_memory == Some(m);
+            let flash = self.saved_at[m]
+                .map(|at| (1.0 - now.duration_since(at).as_secs_f32() / 0.8).max(0.0))
+                .unwrap_or(0.0);
+            let face = if current {
+                rgb(ORANGE)
+            } else if used {
+                rgb(0x55402c)
+            } else {
+                rgb(0x2a2b2e)
+            };
+            pen.fill(br, 3.0, face);
+            if resp.hovered() {
+                pen.fill(br, 3.0, rgba(0xffffff, 18));
+            }
+            pen.stroke(br, 3.0, 1.0, rgba(0x60626a, 255));
+            let ink = if current {
+                rgb(0x141414)
+            } else if used {
+                rgb(0xf0f0f0)
+            } else {
+                rgb(0x6c6e73)
+            };
+            let number = if m == 9 {
+                "0".to_string()
+            } else {
+                format!("{}", m + 1)
+            };
+            let (bx, by, bw, _) = pen.design(br);
+            pen.text(
+                bx + bw / 2.0,
+                by + 9.0,
+                Align2::CENTER_CENTER,
+                &number,
+                BOLD,
+                10.0,
+                ink,
+            );
+            let note = if flash > 0.0 {
+                "SAVED"
+            } else if used {
+                "recall"
+            } else {
+                "empty"
+            };
+            pen.text(
+                bx + bw / 2.0,
+                by + 21.0,
+                Align2::CENTER_CENTER,
+                note,
+                MEDIUM,
+                7.0,
+                ink,
+            );
+            if flash > 0.0 {
+                pen.fill(br, 3.0, rgba(0xffffff, (150.0 * flash) as u8));
+            }
+            if let Some(h) = &self.hold
+                && h.slot == m
+                && !h.saved
+            {
+                let progress = (now.duration_since(h.since).as_secs_f32()
+                    / HOLD_TO_SAVE.as_secs_f32())
+                .min(1.0);
+                pen.fill(
+                    pen.r(bx, by + 24.0, bw * progress, 4.0),
+                    1.0,
+                    rgba(0xffffff, 110),
+                );
+            }
+        }
+        // the press in progress: released early it recalls, held it saves
+        if let Some(h) = &self.hold {
+            let down = match h.key {
+                Some(k) => ui.input(|i| i.key_down(k)),
+                None => ui.input(|i| i.pointer.primary_down()),
+            };
+            let (slot, held, saved) = (h.slot, now.duration_since(h.since), h.saved);
+            if down {
+                if !saved && held >= HOLD_TO_SAVE {
+                    self.save_memory(slot);
+                    if let Some(h) = &mut self.hold {
+                        h.saved = true;
+                    }
+                }
+            } else {
+                if !saved {
+                    self.recall_memory(slot);
+                }
+                self.hold = None;
+            }
+        }
+
+        // undo and redo
+        let (can_undo, can_redo) = {
+            let h = self.history.borrow();
+            (h.can_undo(), h.can_redo())
+        };
+        let br = pen.r(790.0, y + 8.0, 64.0, 24.0);
+        let (undo, down) = self.click(ui, br, "undo");
+        button(
+            pen,
+            br,
+            "UNDO",
+            8.5,
+            rgb(0x4a4c52),
+            can_undo.then_some(rgb(0x8a8c92)),
+            down,
+        );
+        let br = pen.r(860.0, y + 8.0, 64.0, 24.0);
+        let (redo, down) = self.click(ui, br, "redo");
+        button(
+            pen,
+            br,
+            "REDO",
+            8.5,
+            rgb(0x4a4c52),
+            can_redo.then_some(rgb(0x8a8c92)),
+            down,
+        );
+        if undo {
+            self.undo();
+        }
+        if redo {
+            self.redo();
+        }
+        let clip = match self.clipboard {
+            Some((_, v, s)) => format!("COPIED: 303-{} · PATTERN {}", v + 1, s + 1),
+            None => "COPY / PASTE: PATTERN TOOLS".to_string(),
+        };
+        let help = [
+            "CLICK OR KEY 1-0: RECALL  ·  HOLD 0.6 s: SAVE",
+            "CTRL+Z UNDO  ·  CTRL+SHIFT+Z / CTRL+Y REDO",
+        ];
+        pen.text(
+            938.0,
+            y + 11.0,
+            Align2::LEFT_CENTER,
+            help[0],
+            MEDIUM,
+            7.0,
+            rgb(0x8c8e93),
+        );
+        pen.text(
+            938.0,
+            y + 21.0,
+            Align2::LEFT_CENTER,
+            help[1],
+            MEDIUM,
+            7.0,
+            rgb(0x8c8e93),
+        );
+        pen.text(
+            938.0,
+            y + 31.0,
+            Align2::LEFT_CENTER,
+            &clip,
+            BOLD,
+            7.0,
+            rgb(0xffa81c),
+        );
+    }
+
+    /// The keyboard: digits for the memories, Ctrl+Z and Ctrl+Shift+Z or Ctrl+Y.
+    fn keys(&mut self, ui: &mut Ui) {
+        use egui::{Key, Modifiers};
+        let redo = ui.input_mut(|i| {
+            i.consume_key(Modifiers::COMMAND | Modifiers::SHIFT, Key::Z)
+                || i.consume_key(Modifiers::COMMAND, Key::Y)
+        });
+        let undo = ui.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::Z));
+        if redo {
+            self.redo();
+        } else if undo {
+            self.undo();
+        }
+        if self.hold.is_none() {
+            let pressed = ui.input(|i| {
+                if i.modifiers.any() {
+                    return None;
+                }
+                DIGITS.iter().position(|&k| i.key_pressed(k))
+            });
+            if let Some(m) = pressed {
+                self.hold = Some(Hold {
+                    slot: m,
+                    since: Instant::now(),
+                    key: Some(DIGITS[m]),
+                    saved: false,
                 });
             }
         }
@@ -1705,6 +2106,8 @@ impl Panel {
         for v in 0..VOICES {
             self.unit(ui, &pen, &t, v);
         }
+        self.keys(ui);
+        self.memory_bar(ui, &pen, &t);
         if let Some((at, text)) = self.bubble.take() {
             let font = pen.font(BOLD, 9.0);
             let galley = pen.painter.layout_no_wrap(text, font, rgb(0xf2f2f2));
@@ -1790,5 +2193,6 @@ impl NiceEguiApp for Panel {
         self.textures = None;
         self.gesture = None;
         self.note_drag = None;
+        self.hold = None;
     }
 }

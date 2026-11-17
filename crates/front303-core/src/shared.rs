@@ -4,21 +4,8 @@
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicU16, AtomicU32, Ordering::Relaxed};
 
 use crate::params::{SLOTS, VOICES};
-use crate::pattern::{MAX_STEPS, NOTE_MAX, NOTE_MIN, Pattern, Step};
-
-fn pack(s: Step) -> u16 {
-    let note = (s.note.clamp(NOTE_MIN, NOTE_MAX) - NOTE_MIN) as u16;
-    note | (s.accent as u16) << 6 | (s.slide as u16) << 7 | (s.rest as u16) << 8
-}
-
-fn unpack(x: u16) -> Step {
-    Step {
-        note: ((x & 0x3F) as i8 + NOTE_MIN).clamp(NOTE_MIN, NOTE_MAX),
-        accent: x & 0x40 != 0,
-        slide: x & 0x80 != 0,
-        rest: x & 0x100 != 0,
-    }
-}
+use crate::pattern::{MAX_STEPS, Pattern, Step};
+use crate::snapshot::{pack, patterns_from_hex, patterns_to_hex, unpack};
 
 /// Every voice's patterns. The panel edits them here; the audio thread copies them into the
 /// engine when [`PatternBank::edits`] has moved, and writes back what the evolve control
@@ -87,40 +74,31 @@ impl PatternBank {
         self.version.load(Relaxed)
     }
 
-    /// Every pattern as text: per pattern its length and sixteen steps, in hexadecimal.
-    pub fn serialize(&self) -> String {
-        let mut out = String::with_capacity(VOICES * SLOTS * (2 + MAX_STEPS * 3));
+    /// Every pattern, voice by voice.
+    pub fn all(&self) -> Vec<Pattern> {
+        let mut out = Vec::with_capacity(VOICES * SLOTS);
         for v in 0..VOICES {
             for s in 0..SLOTS {
-                let p = self.get(v, s);
-                out.push_str(&format!("{:02x}", p.len));
-                for step in p.steps {
-                    out.push_str(&format!("{:03x}", pack(step)));
-                }
+                out.push(self.get(v, s));
             }
         }
         out
     }
 
+    /// Every pattern as text: per pattern its length and sixteen steps, in hexadecimal.
+    pub fn serialize(&self) -> String {
+        patterns_to_hex(&self.all())
+    }
+
     /// Reads [`PatternBank::serialize`]'s text. Text of another length or with other
     /// characters changes nothing and returns false.
     pub fn deserialize(&self, text: &str) -> bool {
-        let per = 2 + MAX_STEPS * 3;
-        if text.len() != VOICES * SLOTS * per || !text.bytes().all(|b| b.is_ascii_hexdigit()) {
+        let Some(patterns) = patterns_from_hex(text, VOICES * SLOTS) else {
             return false;
-        }
+        };
         for v in 0..VOICES {
             for s in 0..SLOTS {
-                let chunk = &text[(v * SLOTS + s) * per..][..per];
-                let mut p = Pattern::default();
-                p.len = u8::from_str_radix(&chunk[..2], 16)
-                    .unwrap_or(16)
-                    .clamp(1, MAX_STEPS as u8);
-                for (i, step) in p.steps.iter_mut().enumerate() {
-                    let x = u16::from_str_radix(&chunk[2 + i * 3..][..3], 16).unwrap_or(0x100);
-                    *step = unpack(x);
-                }
-                self.store(v, s, &p);
+                self.store(v, s, &patterns[v * SLOTS + s]);
             }
         }
         self.edits.fetch_add(1, Relaxed);

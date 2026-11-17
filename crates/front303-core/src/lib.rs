@@ -20,6 +20,7 @@ pub mod params;
 pub mod pattern;
 mod rb;
 pub mod shared;
+pub mod snapshot;
 
 pub use engine::{Engine, FX_OUTPUT, OUTPUTS, SAMPLE_RATE, TRANSPOSE_RANGE, voice_output};
 pub use fx::intervals::pattern_name as interval_pattern_name;
