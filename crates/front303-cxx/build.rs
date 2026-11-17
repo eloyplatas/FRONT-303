@@ -8,8 +8,15 @@ fn main() {
     println!("cargo:rerun-if-changed=shim");
     println!("cargo:rerun-if-changed=../../third_party");
 
+    // On Windows (MinGW) the C++ runtime goes inside the plugin's DLL, so nothing has to be
+    // installed beside it.
+    let target = std::env::var("TARGET").unwrap_or_default();
+    let static_cxx = target.contains("windows-gnu");
     let base = |std: &str| {
         let mut b = cc::Build::new();
+        if static_cxx {
+            b.cpp_link_stdlib(None);
+        }
         b.cpp(true)
             .std(std)
             .opt_level(3)
@@ -103,4 +110,8 @@ fn main() {
     b.file(shim.join("cloud.cpp"))
         .file(shim.join("reverb.cpp"))
         .compile("f303_cloud");
+
+    if static_cxx {
+        println!("cargo:rustc-link-lib=static=stdc++");
+    }
 }
