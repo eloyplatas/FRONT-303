@@ -6,11 +6,17 @@ license.workspace = true
 publish.workspace = true
 description = "Front 303: four TB-303 voices (ReBirth or DW-303 model per voice) with the ReBirth mixer and effects"
 
+[features]
+default = ["engine"]
+# The sound engine. Without it the crate is the patterns, the generator, the scales, the
+# controls and the snapshots only, as SEQ 666 uses them.
+engine = ["dep:orb-engine", "dep:dw303-voice", "dep:dw303-osc", "dep:dw303-vcf", "dep:dw303-env", "dep:ravet-signal", "dep:front303-cxx"]
+
 [dependencies]
-orb-engine.workspace = true
-dw303-voice.workspace = true
-dw303-osc.workspace = true
-dw303-vcf.workspace = true
-dw303-env.workspace = true
-ravet-signal.workspace = true
-front303-cxx = { path = "../front303-cxx" }
+orb-engine = { workspace = true, optional = true }
+dw303-voice = { workspace = true, optional = true }
+dw303-osc = { workspace = true, optional = true }
+dw303-vcf = { workspace = true, optional = true }
+dw303-env = { workspace = true, optional = true }
+ravet-signal = { workspace = true, optional = true }
+front303-cxx = { path = "../front303-cxx", optional = true }

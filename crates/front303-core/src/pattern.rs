@@ -76,7 +76,8 @@ impl Pattern {
         p
     }
 
-    pub(crate) fn step(&self, index: i64) -> Step {
+    /// The step at `index`, counted round the pattern's length.
+    pub fn step(&self, index: i64) -> Step {
         let len = (self.len as usize).clamp(1, MAX_STEPS) as i64;
         self.steps[index.rem_euclid(len) as usize]
     }

@@ -31,6 +31,18 @@ notes as a transposition (C3 leaves it where it is) when its MIDI switch is on. 
 a main stereo output and five auxiliary stereo outputs: one per voice and one for the effect
 returns, used in the MULTI-OUT mode.
 
+## SEQ 666
+
+![SEQ 666 panel](docs/seq666_panel_0.1.png)
+
+A second plugin from the same code: Front 303's four generative sequencers with **MIDI out and
+no audio at all**. Each channel plays its own eight patterns on the MIDI channel chosen for it
+(1–16), with its own octave, velocity, accent velocity and gate; slides go out as overlapping
+(legato) notes. MIDI notes coming in transpose the channels that follow them. Ten memories as in
+GenderBender P23 (click or key 1–0 recalls, hold 0.6 s saves), undo/redo, copy and paste of
+patterns. Builds in [releases/](releases/) as `Seq666-0.1.0-*` (Linux, Windows, macOS; VST3 and
+CLAP); user guide in Spanish: [SEQ666.es.md](SEQ666.es.md).
+
 ## Status
 
 | Phase | Content | State |
@@ -67,6 +79,9 @@ The user guide, in Spanish, is [MANUAL.es.md](MANUAL.es.md).
 - `crates/front303-plugin`: the VST3/CLAP plugin (`lib.rs`), its parameters, the resampler and
   the panel (`gui/`). `--features standalone` builds the same panel and engine as a program.
 - `crates/front303-cli`: `front303 demo DIR` renders demonstration WAVs.
+- `crates/seq666`: SEQ 666, the MIDI-only plugin. It uses `front303-core` without its `engine`
+  feature (no voices, effects or C++), its own control table (`controls.rs`), a sequencer that
+  emits note events (`engine.rs`) and Front 303's panel pieces (`gui/`).
 
 ## Building
 
@@ -90,6 +105,10 @@ as `Front303.clap`); `packaging/install.sh` installs a bundle for the current us
 `cargo build --release -p front303-plugin --features standalone --bin front303-standalone`
 builds the standalone program.
 
+SEQ 666: `cargo zigbuild --release -p seq666 --lib --target x86_64-unknown-linux-gnu.2.31`,
+bundled as `Seq666.vst3/Contents/x86_64-linux/Seq666.so` (and `Seq666.clap`);
+`packaging/seq666/` holds its installers and macOS bundle template.
+
 ## Checks
 
 - `cargo test --release`: 51 tests of the engine, sequencer, step rates, MIDI transposition,
@@ -102,6 +121,10 @@ builds the standalone program.
   Xvfb, and driven with simulated mouse input; the standalone played through JACK at 48 kHz,
   took MIDI notes from `jack_midiseq` and transposed, and gave the stems on its auxiliary
   ports in the MULTI-OUT mode.
+- SEQ 666: 8 tests of note timing, gates, slides (legato overlap), MIDI channels, octave and
+  velocities, step rates and shuffle, MIDI transposition, and that every note-on gets its
+  note-off through stops, locates, pattern changes and channel changes; the VST3 validator
+  passes 47 of 47; the panel and memories were driven under Xvfb.
 - Not yet tried in REAPER, Bitwig or Ardour.
 
 ## What to know

@@ -484,7 +484,14 @@ fn main() -> io::Result<()> {
                     front303_core::controls::Kind::Choice(names) => names.join(" / "),
                     front303_core::controls::Kind::Switch => "OFF / ON".to_string(),
                 };
-                println!("{}\t{}\t{}\t{}\t{}", c.id, c.name, c.group, range, c.text(c.default));
+                println!(
+                    "{}\t{}\t{}\t{}\t{}",
+                    c.id,
+                    c.name,
+                    c.group,
+                    range,
+                    c.text(c.default)
+                );
             }
             Ok(())
         }

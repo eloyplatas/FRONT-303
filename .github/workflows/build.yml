@@ -1,5 +1,5 @@
-# Builds Front 303 for Windows (x86_64) and macOS (universal: Apple silicon and Intel) and
-# commits the archives to releases/. Linux builds are made locally with cargo-zigbuild (see the
+# Builds Front 303 and SEQ 666 for Windows (x86_64) and macOS (universal: Apple silicon and
+# Intel) and commits the archives to releases/. Linux builds are made locally with cargo-zigbuild (see the
 # README) for an old glibc.
 name: build
 
@@ -39,7 +39,9 @@ jobs:
           # beside the plugin
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-g++-posix
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS: -C link-arg=-static -C link-arg=-static-libgcc -C link-arg=-static-libstdc++
-        run: cargo build --release -p front303-plugin --lib --target x86_64-pc-windows-gnu
+        run: |
+          cargo build --release -p front303-plugin --lib --target x86_64-pc-windows-gnu
+          cargo build --release -p seq666 --lib --target x86_64-pc-windows-gnu
       - name: Check the DLL's imports
         run: |
           x86_64-w64-mingw32-objdump -p target/x86_64-pc-windows-gnu/release/front303.dll | grep "DLL Name" | sort -u
@@ -61,10 +63,24 @@ jobs:
           cp third_party/freeverb3/freeverb/COPYING $D/licenses/freeverb3-GPL2.txt
           cp third_party/lv2/COPYING $D/licenses/LV2-ISC.txt
           zip -qr $D.zip $D
+      - name: Package SEQ 666
+        run: |
+          ! x86_64-w64-mingw32-objdump -p target/x86_64-pc-windows-gnu/release/seq666.dll | grep -Ei "DLL Name: (libstdc|libgcc|libwinpthread)"
+          V=$(grep -m1 '^version' crates/seq666/Cargo.toml | cut -d'"' -f2)
+          D=Seq666-$V-windows-x86_64
+          mkdir -p $D/Seq666.vst3/Contents/x86_64-win $D/licenses
+          cp target/x86_64-pc-windows-gnu/release/seq666.dll $D/Seq666.vst3/Contents/x86_64-win/Seq666.vst3
+          cp target/x86_64-pc-windows-gnu/release/seq666.dll $D/Seq666.clap
+          cp LICENSE SEQ666.es.md $D/
+          cp packaging/seq666/LEEME-windows.txt $D/LEEME.txt
+          cp crates/front303-plugin/fonts/OFL.txt $D/licenses/Inter-OFL.txt
+          zip -qr $D.zip $D
       - uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: Front303-*-windows-x86_64.zip
+          path: |
+            Front303-*-windows-x86_64.zip
+            Seq666-*-windows-x86_64.zip
 
   macos:
     runs-on: macos-latest
@@ -84,6 +100,12 @@ jobs:
             target/x86_64-apple-darwin/release/libfront303.dylib
           lipo -info libfront303.dylib
           otool -L libfront303.dylib
+          cargo build --release -p seq666 --lib --target aarch64-apple-darwin
+          cargo build --release -p seq666 --lib --target x86_64-apple-darwin
+          lipo -create -output libseq666.dylib \
+            target/aarch64-apple-darwin/release/libseq666.dylib \
+            target/x86_64-apple-darwin/release/libseq666.dylib
+          lipo -info libseq666.dylib
       - name: Package
         run: |
           V=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
@@ -108,10 +130,31 @@ jobs:
           cp third_party/freeverb3/freeverb/COPYING $D/licenses/freeverb3-GPL2.txt
           cp third_party/lv2/COPYING $D/licenses/LV2-ISC.txt
           ditto -c -k --keepParent $D $D.zip
+      - name: Package SEQ 666
+        run: |
+          V=$(grep -m1 '^version' crates/seq666/Cargo.toml | cut -d'"' -f2)
+          D=Seq666-$V-macos-universal
+          for kind in vst3 clap; do
+            B=$D/Seq666.$kind/Contents
+            mkdir -p $B/MacOS
+            cp libseq666.dylib $B/MacOS/Seq666
+            sed -e "s/@VERSION@/$V/g" -e "s/@ID_SUFFIX@/.$kind/" packaging/seq666/Info.plist.in > $B/Info.plist
+            printf 'BNDL????' > $B/PkgInfo
+            codesign --force --sign - --timestamp=none $D/Seq666.$kind
+          done
+          mkdir -p $D/licenses
+          cp LICENSE SEQ666.es.md $D/
+          cp packaging/seq666/LEEME-macos.txt $D/LEEME.txt
+          cp packaging/seq666/install.command $D/
+          chmod +x $D/install.command
+          cp crates/front303-plugin/fonts/OFL.txt $D/licenses/Inter-OFL.txt
+          ditto -c -k --keepParent $D $D.zip
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: Front303-*-macos-universal.zip
+          path: |
+            Front303-*-macos-universal.zip
+            Seq666-*-macos-universal.zip
 
   publish:
     needs: [windows, macos]
@@ -127,10 +170,11 @@ jobs:
           V=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
           # keep only this version's Windows and macOS archives
           rm -f releases/Front303-*-windows-x86_64.zip releases/Front303-*-macos-universal.zip
+          rm -f releases/Seq666-*-windows-x86_64.zip releases/Seq666-*-macos-universal.zip
           cp built/windows/*.zip built/macos/*.zip releases/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add releases
-          git commit -m "Windows and macOS builds of $V [skip ci]" || exit 0
+          git commit -m "Windows and macOS builds of Front 303 $V and SEQ 666 [skip ci]" || exit 0
           git pull --rebase origin main
           git push origin HEAD:main

@@ -7,7 +7,7 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
-use crate::controls::{self, G};
+use crate::controls::{self, Control, G};
 use crate::params::{SLOTS, VOICES};
 use crate::pattern::{MAX_STEPS, NOTE_MAX, NOTE_MIN, Pattern, Step};
 
@@ -88,10 +88,16 @@ impl Snapshot {
         &self.patterns[v * SLOTS + s]
     }
 
-    /// The snapshot as text: `id=value` pairs, then the patterns in hexadecimal.
+    /// The snapshot as text, under Front 303's control identifiers.
     pub fn to_text(&self) -> String {
+        self.to_text_with(&controls::controls())
+    }
+
+    /// The snapshot as text: `id=value` pairs for `table`'s controls, then the patterns in
+    /// hexadecimal.
+    pub fn to_text_with(&self, table: &[Control]) -> String {
         let mut out = String::new();
-        for (c, v) in controls::controls().iter().zip(&self.values) {
+        for (c, v) in table.iter().zip(&self.values) {
             out.push_str(&format!("{}={};", c.id, v));
         }
         out.push('|');
@@ -99,11 +105,15 @@ impl Snapshot {
         out
     }
 
-    /// Reads [`Snapshot::to_text`]'s text. Controls it does not name take their defaults;
-    /// identifiers no control has are ignored.
+    /// Reads [`Snapshot::to_text`]'s text.
     pub fn from_text(text: &str) -> Option<Snapshot> {
+        Self::from_text_with(text, &controls::controls())
+    }
+
+    /// Reads [`Snapshot::to_text_with`]'s text for `table`. Controls it does not name take
+    /// their defaults; identifiers `table` does not have are ignored.
+    pub fn from_text_with(text: &str, table: &[Control]) -> Option<Snapshot> {
         let (values_text, hex) = text.split_once('|')?;
-        let table = controls::controls();
         let mut values: Vec<f32> = table.iter().map(|c| c.default).collect();
         for pair in values_text.split(';').filter(|p| !p.is_empty()) {
             let (id, v) = pair.split_once('=')?;
@@ -124,26 +134,35 @@ pub struct Memories {
 }
 
 impl Memories {
-    /// One line per used memory: its number, a colon and the snapshot's text.
+    /// One line per used memory, under Front 303's control identifiers.
     pub fn to_text(&self) -> String {
+        self.to_text_with(&controls::controls())
+    }
+
+    /// One line per used memory: its number, a colon and the snapshot's text.
+    pub fn to_text_with(&self, table: &[Control]) -> String {
         let mut out = String::new();
         for (i, s) in self.slots.iter().enumerate() {
             if let Some(s) = s {
-                out.push_str(&format!("{i}:{}\n", s.to_text()));
+                out.push_str(&format!("{i}:{}\n", s.to_text_with(table)));
             }
         }
         out
     }
 
-    /// Reads [`Memories::to_text`]'s text; lines it cannot read stay empty memories.
     pub fn from_text(text: &str) -> Memories {
+        Self::from_text_with(text, &controls::controls())
+    }
+
+    /// Reads [`Memories::to_text_with`]'s text; lines it cannot read stay empty memories.
+    pub fn from_text_with(text: &str, table: &[Control]) -> Memories {
         let mut m = Memories::default();
         for line in text.lines() {
             if let Some((i, rest)) = line.split_once(':')
                 && let Ok(i) = i.parse::<usize>()
                 && i < MEMORIES
             {
-                m.slots[i] = Snapshot::from_text(rest);
+                m.slots[i] = Snapshot::from_text_with(rest, table);
             }
         }
         m

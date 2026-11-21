@@ -1,7 +1,12 @@
 [workspace]
 resolver = "3"
 members = [
-    "crates/front303-cxx","crates/front303-core", "crates/front303-cli", "crates/front303-plugin"]
+    "crates/front303-cxx",
+    "crates/front303-core",
+    "crates/front303-cli",
+    "crates/front303-plugin",
+    "crates/seq666",
+]
 
 [workspace.package]
 version = "0.4.0"

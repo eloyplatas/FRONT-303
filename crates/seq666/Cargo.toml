@@ -1,0 +1,25 @@
+[package]
+name = "seq666"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "SEQ 666: Front 303's four generative sequencers as a MIDI-only VST3 and CLAP plugin"
+
+[lib]
+name = "seq666"
+crate-type = ["cdylib", "lib"]
+
+[features]
+standalone = ["nice-plug/standalone"]
+
+[[bin]]
+name = "seq666-standalone"
+path = "src/main.rs"
+required-features = ["standalone"]
+
+[dependencies]
+front303-core = { path = "../front303-core", default-features = false }
+nice-plug = "=0.4.2"
+nice-plug-egui = "=0.6.0"
+egui = "=0.37.0"

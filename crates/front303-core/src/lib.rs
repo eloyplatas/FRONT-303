@@ -8,22 +8,31 @@
 //! [`SAMPLE_RATE`].
 
 #![allow(clippy::needless_range_loop, clippy::field_reassign_with_default)]
+#![cfg_attr(not(feature = "engine"), allow(dead_code))]
 
 pub mod controls;
 
+#[cfg(feature = "engine")]
 mod dw;
+#[cfg(feature = "engine")]
 mod engine;
+#[cfg(feature = "engine")]
 mod fx;
 pub mod generator;
+#[cfg(feature = "engine")]
 mod o3;
 pub mod params;
 pub mod pattern;
+#[cfg(feature = "engine")]
 mod rb;
 pub mod shared;
 pub mod snapshot;
 
+#[cfg(feature = "engine")]
 pub use engine::{Engine, FX_OUTPUT, OUTPUTS, SAMPLE_RATE, TRANSPOSE_RANGE, voice_output};
+#[cfg(feature = "engine")]
 pub use fx::intervals::pattern_name as interval_pattern_name;
+#[cfg(feature = "engine")]
 pub use fx::reverb::program_name as reverb_program_name;
 pub use generator::Rng;
 pub use params::*;
